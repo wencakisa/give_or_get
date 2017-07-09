@@ -1,3 +1,9 @@
+# Visual Studio Code settings
+.vscode/
+
+# Default Django database file
+db.sqlite3
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
