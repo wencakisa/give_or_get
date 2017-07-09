@@ -9,7 +9,7 @@ from rest_framework import status
 
 from .models import Item, Deal
 from .serializers import ItemSerializer, DealSerializer
-from .permissions import IsNotDealItemOwner
+from .permissions import IsNotDealItemOwner, IsDealBuyer, IsDealItemOwner
 from .filters import IsActiveFilterBackend, DealTypeFilterBackend
 
 
@@ -36,8 +36,8 @@ class DealViewSet(viewsets.ModelViewSet):
         'list': (IsAuthenticated,),
         'retrieve': (IsAuthenticated,),
         'create': (IsAuthenticated, IsNotDealItemOwner),
-        'update': (IsAuthenticated,),
-        'destroy': (IsAuthenticated,)
+        'update': (IsAuthenticated, IsDealBuyer),
+        'destroy': (IsAuthenticated, IsDealItemOwner)
     }
     serializer_class = DealSerializer
 
