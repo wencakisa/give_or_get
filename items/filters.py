@@ -11,13 +11,10 @@ class IsActiveFilterBackend(filters.BaseFilterBackend):
 
 class DealTypeFilterBackend(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
-        result = queryset
         user = request.user
 
         deal_type = view.kwargs.get('deal_type')
         if deal_type == 'personal':
-            result = result.filter(item__owner=user)
+            return queryset.filter(item__owner=user)
         elif deal_type == 'following':
-            result = result.filter(buyer=user)
-
-        return result
+            return queryset.filter(buyer=user)
