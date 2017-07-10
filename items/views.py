@@ -7,16 +7,18 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework import status
 
+from rest_condition.permissions import Not
+
 from .models import Item, Deal
-from .serializers import ItemSerializer, DealSerializer
-from .permissions import IsNotDealItemOwner, IsDealBuyer, IsDealItemOwner
+from .serializers import DealReadSerializer, ItemSerializer, DealSerializer
+from .permissions import IsDealBuyer, IsDealItemOwner
 from .filters import IsActiveFilterBackend, DealTypeFilterBackend
 
 
 class DealList(generics.ListAPIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
-    serializer_class = DealSerializer
+    serializer_class = DealReadSerializer
     filter_backends = (IsActiveFilterBackend, DealTypeFilterBackend)
     queryset = Deal.objects.all()
 
@@ -35,7 +37,7 @@ class DealViewSet(viewsets.ModelViewSet):
     permission_classes_by_action = {
         'list': (IsAuthenticated,),
         'retrieve': (IsAuthenticated,),
-        'create': (IsAuthenticated, IsNotDealItemOwner),
+        'create': (IsAuthenticated, Not(IsDealItemOwner)),
         'update': (IsAuthenticated, IsDealBuyer),
         'destroy': (IsAuthenticated, IsDealItemOwner)
     }
@@ -67,3 +69,12 @@ class DealViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
 
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def destroy(self, request, item_pk=None, pk=None):
+        item = generics.get_object_or_404(Item, id=item_pk)
+        self.check_object_permissions(request, item)
+
+        deal = generics.get_object_or_404(item.deal_set, id=pk)
+        deal.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)

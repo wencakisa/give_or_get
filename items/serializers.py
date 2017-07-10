@@ -10,17 +10,33 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'username')
 
 
-class DealSerializer(serializers.ModelSerializer):
+class ItemReadSerializer(serializers.ModelSerializer):
+    owner = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Item
+        fields = ('id', 'name', 'description', 'phone_number', 'owner')
+
+
+class DealReadSerializer(serializers.ModelSerializer):
     buyer = UserSerializer(read_only=True)
-    message = serializers.CharField(min_length=5, max_length=1024, required=True)
+    item = ItemReadSerializer(read_only=True)
     status = serializers.SerializerMethodField()
 
     class Meta:
         model = Deal
-        fields = ('id', 'buyer', 'message', 'status')
+        fields = ('id', 'buyer', 'message', 'item', 'status')
 
     def get_status(self, obj):
         return obj.get_status_display()
+
+
+class DealSerializer(DealReadSerializer):
+    message = serializers.CharField(min_length=5, max_length=1024, required=True)
+
+    class Meta:
+        model = Deal
+        fields = ('id', 'buyer', 'message', 'status')
 
     def create(self, validated_data):
         request = self.context.get('request')
@@ -31,13 +47,12 @@ class DealSerializer(serializers.ModelSerializer):
         return Deal.objects.create(buyer=request.user, message=message, item=item)
 
 
-class ItemSerializer(serializers.ModelSerializer):
+class ItemSerializer(ItemReadSerializer):
     name = serializers.CharField(min_length=5, max_length=50, required=True)
     description = serializers.CharField(min_length=5, max_length=1024, required=True)
 
     phone_number = serializers.CharField(max_length=16, required=False)
 
-    owner = UserSerializer(read_only=True)
     deal_set = DealSerializer(read_only=True, many=True)
 
     class Meta:
