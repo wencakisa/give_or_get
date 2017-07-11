@@ -48,13 +48,30 @@ class DealSerializer(DealReadSerializer):
 
 
 class ItemSerializer(ItemReadSerializer):
-    name = serializers.CharField(min_length=5, max_length=50, required=True)
-    description = serializers.CharField(min_length=5, max_length=1024, required=True)
+    name = serializers.CharField(min_length=5, max_length=50, allow_blank=False)
+    description = serializers.CharField(min_length=5, max_length=1024, allow_blank=False)
 
-    phone_number = serializers.CharField(max_length=16, required=False)
+    phone_number = serializers.RegexField(
+        regex=Item.PHONE_REGEX,
+        max_length=16,
+        allow_blank=True,
+        error_messages={
+            'invalid': Item.PHONE_REGEX_MESSAGE
+        }
+    )
 
     deal_set = DealSerializer(read_only=True, many=True)
 
     class Meta:
         model = Item
         fields = ('id', 'name', 'description', 'phone_number', 'owner', 'added_on', 'deal_set')
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+
+        return Item.objects.create(
+            name=validated_data.get('name'),
+            description=validated_data.get('description'),
+            phone_number=validated_data.get('phone_number', ''),
+            owner=request.user
+        )
