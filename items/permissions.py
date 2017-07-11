@@ -8,6 +8,6 @@ class IsDealBuyer(permissions.BasePermission):
         return request.user == obj.buyer
 
 
-class IsDealItemOwner(permissions.BasePermission):
+class IsItemOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return request.user == obj.owner
