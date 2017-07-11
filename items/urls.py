@@ -3,11 +3,12 @@ from django.conf.urls import url
 from rest_framework import routers
 from rest_framework_nested import routers as nested_routers
 
-from .views import DealList, ItemViewSet, DealViewSet
+from .views import PersonalItemList, DealList, ItemViewSet, DealViewSet
 
 
 urlpatterns = [
-    url(r'^deals/(?P<deal_type>(personal|following))?/$', DealList.as_view(), name='deal-list')
+    url(r'^items/personal/$', PersonalItemList.as_view(), name='personal-item-list'),
+    url(r'^deals/(?P<deal_type>(personal|following))/$', DealList.as_view(), name='deal-list')
 ]
 
 items_router = routers.SimpleRouter()
